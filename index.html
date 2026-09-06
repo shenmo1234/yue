@@ -3579,15 +3579,9 @@ perspective:1000px; cursor:pointer; user-select:none;
 }
 .div-flip-inner {
 position:relative; width:100%; height:100%;
-transform-style:preserve-3d; transition:transform .5s cubic-bezier(.4,.1,.2,1);
+transform-style:preserve-3d; transition:transform .6s cubic-bezier(.4,.1,.2,1);
 }
-.div-flip:not(.flipped) .div-flip-back,
-.div-flip.flipped .div-flip-front { display:none; }
-.div-flip.flipped .div-flip-back { display:flex; animation:divFlipIn .24s ease; }
-@keyframes divFlipIn {
-from { opacity:.25; transform:scale(.95); }
-to { opacity:1; transform:scale(1); }
-}
+.div-flip.flipped .div-flip-inner { transform:rotateY(180deg); }
 .div-flip-face {
 position:absolute; inset:0; border-radius:14px; overflow:hidden;
 -webkit-backface-visibility:hidden; backface-visibility:hidden;
@@ -3622,6 +3616,7 @@ padding:2px 8px; border-radius:99px;
 background:#fffdf7; border:1px solid rgba(238,178,188,.55);
 padding:16px 13px 10px; gap:7px; overflow-y:auto;
 text-align:center; box-shadow:0 6px 18px rgba(180,120,140,.08);
+transform:rotateY(180deg);
 }
 .df-b-pos { font-size:10.5px; color:#9a93a8; letter-spacing:1px; margin-top:1px; }
 .df-b-name {
@@ -3638,17 +3633,13 @@ font-size:12px; font-weight:500; color:#4a4450; line-height:1.9;
 text-align:center; overflow-wrap:anywhere; margin-top:1px;
 }
 .df-b-hint { font-size:9.5px; color:#c0b8c6; margin-top:8px; }
-.div-mini-tarot.flipped { flex:0 0 100%; max-width:100%; }
-.div-mini-tarot.flipped .div-flip { aspect-ratio:auto; max-height:none; height:auto; }
-.div-mini-tarot.flipped .div-flip-inner { position:static; height:auto; }
-.div-mini-tarot.flipped .div-flip-face { position:relative; }
-.div-mini-tarot.flipped .div-flip-back { border-radius:16px; padding:24px 24px 14px; box-shadow:0 10px 26px rgba(180,120,140,.12); }
-.div-mini-tarot.flipped .df-b-pos { font-size:12.5px; margin-bottom:3px; }
-.div-mini-tarot.flipped .df-b-name { font-size:23px; }
-.div-mini-tarot.flipped .df-b-rev { font-size:11.5px; padding:3px 11px; }
-.div-mini-tarot.flipped .df-b-key { font-size:16.5px; margin-top:5px; }
-.div-mini-tarot.flipped .df-b-meaning { font-size:14.5px; line-height:2.05; margin-top:8px; }
-.div-mini-tarot.flipped .df-b-hint { font-size:10px; margin-top:14px; }
+.div-spread-multi .div-flip-back { padding:10px 8px 6px; gap:5px; }
+.div-spread-multi .df-b-pos { font-size:9.5px; margin-top:0; }
+.div-spread-multi .df-b-name { font-size:13.5px; gap:4px; }
+.div-spread-multi .df-b-rev { font-size:8.5px; padding:1px 6px; }
+.div-spread-multi .df-b-key { font-size:11px; margin-top:0; }
+.div-spread-multi .df-b-meaning { font-size:11px; line-height:1.75; margin-top:0; }
+.div-spread-multi .df-b-hint { font-size:8px; margin-top:6px; }
 .div-h-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
 .div-h-bar .div-label { margin-bottom:0; }
 .div-h-ops { display:flex; gap:6px; flex-shrink:0; }
@@ -9072,9 +9063,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1788690697853">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1788693044390">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-06 18:31<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-06 19:10<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -45702,7 +45693,7 @@ const r = document.getElementById('div-result');
 if (!r) return;
 const icons = m === 'tarot' ? TAROT_ICONS : LENO_ICONS;
 const labels = (MODE_LABELS[m] && MODE_LABELS[m][cards.length]) || [];
-let html = '<div class="div-spread">';
+let html = '<div class="div-spread' + (cards.length > 1 ? ' div-spread-multi' : '') + '">';
 cards.forEach((c, i) => {
 if (m === 'tarot') {
 const src = deckSrc(c, m) || c;
@@ -45755,8 +45746,6 @@ html += '</div>';
 r.innerHTML = html;
 r.querySelectorAll('.div-flip').forEach(f => f.addEventListener('click', () => {
 f.classList.toggle('flipped');
-const m = f.closest('.div-mini-tarot');
-if (m) m.classList.toggle('flipped');
 }));
 const sendBtn = document.getElementById('div-send-btn');
 if (sendBtn) sendBtn.addEventListener('click', () => sendToChat(m, cards, summary, question));
@@ -53526,13 +53515,14 @@ t.className = 'cc-toast'; void t.offsetWidth; t.className = 'cc-toast show';
 clearTimeout(t._timer);
 t._timer = setTimeout(() => { t.className = 'cc-toast'; }, 2000);
 }
+function mailItemOk(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
 function csFor(cid) { return cid ? window.storeFor(cid) : store; }
 function prefixFor(cid) { return cid ? ('xy-home-v2:' + cid) : window.activePrefix(); }
 function snapKey(cid) { return prefixFor(cid) + ':' + SNAP_KEY; }
 function loadSnap(cid) {
 try {
 const v = localStorage.getItem(snapKey(cid));
-if (v) { const a = JSON.parse(v); if (Array.isArray(a)) return a; }
+if (v) { const a = JSON.parse(v); if (Array.isArray(a)) return a.filter(mailItemOk); }
 } catch (e) {}
 return [];
 }
@@ -53546,22 +53536,23 @@ if (c.partnerReply) { c.partnerReply = Object.assign({}, c.partnerReply); c.part
 return c;
 }
 function writeSnap(list, cid) {
-if (!list || !list.length) { try { localStorage.removeItem(snapKey(cid)); } catch (e) {} return; }
+list = (list || []).filter(mailItemOk);
+if (!list.length) { try { localStorage.removeItem(snapKey(cid)); } catch (e) {} return; }
 try { const snap = JSON.stringify(list.map(stripLetterImg)); if (snap.length <= LS_BIG_LIMIT) localStorage.setItem(snapKey(cid), snap); } catch (e) {}
 }
 function load(cid) {
 const cs = csFor(cid);
 let list = [];
 const raw = cs.get(KEY);
-if (raw !== null) { try { list = JSON.parse(raw); } catch (e) { list = []; } }
+if (raw !== null) { try { const p = JSON.parse(raw); if (Array.isArray(p)) list = p.filter(mailItemOk); } catch (e) { list = []; } }
 if (!list.length) { try { const v = loadSnap(cid); if (v.length) list = v; } catch (e) {} }
 if (!cid && !mailDbReady && mailPending && mailPending.length) {
 const map = {};
-list.forEach(x => { if (x && x.id) map[x.id] = x; });
-mailPending.forEach(x => { if (x && x.id) map[x.id] = x; });
+list.forEach(x => { if (mailItemOk(x) && x.id) map[x.id] = x; });
+mailPending.filter(mailItemOk).forEach(x => { if (x && x.id) map[x.id] = x; });
 list = Object.keys(map).map(k => map[k]).sort((a, b) => (b.tm || 0) - (a.tm || 0));
 }
-return list;
+return list.filter(mailItemOk);
 }
 function letterLen(o) {
 let n = 0;
@@ -53578,7 +53569,7 @@ function mergeLists(a, b) {
 const map = {};
 const longer = (x, y) => (String(x || '').length >= String(y || '').length) ? x : y;
 const put = (x) => {
-if (!x || !x.id) return;
+if (!mailItemOk(x) || !x.id) return;
 const prev = map[x.id];
 if (!prev) { map[x.id] = x; return; }
 const merged = Object.assign({}, prev);
@@ -53606,6 +53597,7 @@ return Object.keys(map).map(k => map[k]).sort((x, y) => (y.tm || 0) - (x.tm || 0
 let mailDbReady = false;
 let mailPending = null;
 function save(list, cid) {
+list = (list || []).filter(mailItemOk);
 if (!cid && !mailDbReady) { try { mailPending = (list || []).slice(); } catch (e) {} writeSnap(list, cid); return; }
 csFor(cid).set(KEY, JSON.stringify(list));
 writeSnap(list, cid);
@@ -53941,6 +53933,11 @@ const list = (window.getContacts && window.getContacts()) || [{ id: 'default' }]
 list.forEach(c => checkPendingReplyFor(c.id));
 }
 function render() {
+const outPending = (function () {
+const m = new Map();
+try { replyPendingLoad().forEach(p => { if (p && p.id && p.due) m.set(p.id, p.due); }); } catch (e) {}
+return m;
+})();
 const list = load().slice().sort((a, b) => b.tm - a.tm);
 const name = partnerName();
 const inEl = document.getElementById('mail-in-list');
@@ -80478,4 +80475,4 @@ return { lock: document.body.classList.contains('scroll-lock'), open: open };
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtpo9bi5 -->
+<!-- __MOCHI_EOF__ mtppnm3q -->
