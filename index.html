@@ -3619,27 +3619,36 @@ background:rgba(120,92,168,.85); color:#fff; font-size:10px; font-weight:700;
 padding:2px 8px; border-radius:99px;
 }
 .div-flip-back {
-background:#fffdf7; border:1px solid rgba(0,0,0,.08);
-padding:14px 13px 10px; gap:7px; overflow-y:auto;
-text-align:center;
+background:#fffdf7; border:1px solid rgba(238,178,188,.55);
+padding:16px 13px 10px; gap:7px; overflow-y:auto;
+text-align:center; box-shadow:0 6px 18px rgba(180,120,140,.08);
 }
-.df-b-name { font-size:15.5px; font-weight:800; color:#3a2f4b; line-height:1.25; }
-.df-b-pos { font-size:10px; color:#9a93a8; }
-.df-kw {
-font-size:11px; font-weight:700; color:#fff; background:#8f7fb5;
-padding:3px 10px; border-radius:99px; display:inline-block; margin-top:2px;
+.df-b-pos { font-size:10.5px; color:#9a93a8; letter-spacing:1px; margin-top:1px; }
+.df-b-name {
+font-size:17px; font-weight:800; color:#3a2f4b; line-height:1.3;
+display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;
 }
-.df-chips {
-display:flex; flex-wrap:wrap; justify-content:center; gap:4px 5px;
-min-height:0;
+.df-b-rev {
+font-size:10px; font-weight:700; color:#fff; background:#e07856;
+padding:2px 8px; border-radius:99px; line-height:1.3;
 }
-.df-chip {
-font-size:10.5px; font-weight:600; color:#5d4e86; background:rgba(143,127,181,.14);
-padding:3px 9px; border-radius:99px; line-height:1.4; max-width:100%;
-overflow-wrap:anywhere;
+.df-b-key { font-size:13px; font-weight:800; color:#e07856; margin-top:1px; }
+.df-b-meaning {
+font-size:12px; font-weight:500; color:#4a4450; line-height:1.9;
+text-align:center; overflow-wrap:anywhere; margin-top:1px;
 }
-.df-b-detail { font-size:10.5px; color:#8a8294; line-height:1.55; border-top:1px dashed rgba(0,0,0,.08); padding-top:7px; margin-top:auto; overflow-wrap:anywhere; }
-.df-b-hint { font-size:9px; color:#b7b0c0; margin-top:7px; }
+.df-b-hint { font-size:9.5px; color:#c0b8c6; margin-top:8px; }
+.div-mini-tarot.flipped { flex:0 0 100%; max-width:100%; }
+.div-mini-tarot.flipped .div-flip { aspect-ratio:auto; max-height:none; height:auto; }
+.div-mini-tarot.flipped .div-flip-inner { position:static; height:auto; }
+.div-mini-tarot.flipped .div-flip-face { position:relative; }
+.div-mini-tarot.flipped .div-flip-back { border-radius:16px; padding:24px 24px 14px; box-shadow:0 10px 26px rgba(180,120,140,.12); }
+.div-mini-tarot.flipped .df-b-pos { font-size:12.5px; margin-bottom:3px; }
+.div-mini-tarot.flipped .df-b-name { font-size:23px; }
+.div-mini-tarot.flipped .df-b-rev { font-size:11.5px; padding:3px 11px; }
+.div-mini-tarot.flipped .df-b-key { font-size:16.5px; margin-top:5px; }
+.div-mini-tarot.flipped .df-b-meaning { font-size:14.5px; line-height:2.05; margin-top:8px; }
+.div-mini-tarot.flipped .df-b-hint { font-size:10px; margin-top:14px; }
 .div-h-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
 .div-h-bar .div-label { margin-bottom:0; }
 .div-h-ops { display:flex; gap:6px; flex-shrink:0; }
@@ -7067,9 +7076,10 @@ color-scheme:dark;
 .div-flip-back { background:#232026; border-color:var(--dark-border-12); }
 .div-flip-back .df-b-name { color:#e7e0f0; }
 .div-flip-back .df-b-pos { color:#8f8898; }
-.div-flip-back .df-chip { color:#cdbfe6; background:rgba(160,140,205,.16); }
-.div-flip-back .df-b-detail { color:#8f8898; border-top-color:rgba(255,255,255,.08); }
-.div-flip-back .df-b-hint { color:#5f5a68; }
+.div-flip-back .df-b-rev { background:#e07856; color:#fff; }
+.div-flip-back .df-b-key { color:#ef9a7c; }
+.div-flip-back .df-b-meaning { color:#cfc6d6; }
+.div-flip-back .df-b-hint { color:#6a6470; }
 .div-h-btn { background:var(--dark-hover); color:var(--ink); }
 #div-h-del-sel { background:rgba(224,85,85,.2); color:#f07171; }
 .div-h-cb { border-color:rgba(255,255,255,.3); }
@@ -9062,9 +9072,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1788688311586">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1788690697853">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-06 17:51<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-06 18:31<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -45696,7 +45706,6 @@ let html = '<div class="div-spread">';
 cards.forEach((c, i) => {
 if (m === 'tarot') {
 const src = deckSrc(c, m) || c;
-const revTxt = c.rev ? '（逆位）' : '';
 let frameIdx = -1;
 for (let fi = 0; fi < TAROT.length; fi++) { if (TAROT[fi].name === src.name) { frameIdx = fi; break; } }
 const img = frameIdx >= 0
@@ -45705,29 +45714,21 @@ const img = frameIdx >= 0
 ? '<img class="df-img" src="' + String(src.img).replace(/"/g, '&quot;') + '" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display=\'none\'">'
 : '');
 const svg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + (icons[c.icon] || '') + '</svg>';
-const kw = src.keyword ? '<div class="df-kw">' + String(src.keyword).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '</div>' : '';
+const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+const kw = src.keyword ? '<div class="df-b-key">「' + esc(src.keyword) + '」</div>' : '';
 const body = (c.rev ? (src.dn || src.neg || '') : (src.up || src.pos || '')) || c.meaning || '';
-const detail = (c.detail || src.detail || '');
-const chips = '<div class="df-chips">' + String(body).split(/[、，,]/).map(function (w) {
-w = w.replace(/^\s+|\s+$/g, '');
-if (!w) return '';
-const t = window.taFit ? window.taFit(w) : w;
-return '<span class="df-chip">' + String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '</span>';
-}).join('') + '</div>';
+const meaning = '<div class="df-b-meaning">' + esc(window.taFit ? window.taFit(body) : body) + '</div>';
 html += '<div class="div-mini div-mini-tarot' + (cards.length === 1 ? ' div-mini-single' : '') + '" style="animation-delay:' + (i * 120) + 'ms">' +
 '<div class="div-flip">' +
 '<div class="div-flip-inner">' +
 '<div class="div-flip-face div-flip-front' + (c.rev ? ' is-rev' : '') + '">' +
 '<div class="df-art"><span class="df-ico">' + svg + '</span>' + img + '</div>' +
-(labels[i] ? '<div class="df-tag">' + labels[i] + '</div>' : '') +
-(c.rev ? '<div class="df-rev-badge">逆位</div>' : '') +
 '</div>' +
 '<div class="div-flip-face div-flip-back">' +
-'<div class="df-b-name">' + String(c.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + revTxt + '</div>' +
 (labels[i] ? '<div class="df-b-pos">' + labels[i] + '</div>' : '') +
+'<div class="df-b-name">' + esc(c.name || '') + (c.rev ? '<span class="df-b-rev">逆位</span>' : '') + '</div>' +
 kw +
-chips +
-(detail ? '<div class="df-b-detail">' + (window.taFit ? window.taFit(detail) : detail) + '</div>' : '') +
+meaning +
 '<div class="df-b-hint">轻点牌面返回</div>' +
 '</div>' +
 '</div>' +
@@ -45752,7 +45753,11 @@ html += '<button class="div-send-btn" id="div-send-btn"><svg viewBox="0 0 24 24"
 html += '<button class="div-copy-btn" id="div-copy-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>点击复制文字</button>';
 html += '</div>';
 r.innerHTML = html;
-r.querySelectorAll('.div-flip').forEach(f => f.addEventListener('click', () => f.classList.toggle('flipped')));
+r.querySelectorAll('.div-flip').forEach(f => f.addEventListener('click', () => {
+f.classList.toggle('flipped');
+const m = f.closest('.div-mini-tarot');
+if (m) m.classList.toggle('flipped');
+}));
 const sendBtn = document.getElementById('div-send-btn');
 if (sendBtn) sendBtn.addEventListener('click', () => sendToChat(m, cards, summary, question));
 const copyBtn = document.getElementById('div-copy-btn');
@@ -53628,11 +53633,15 @@ return el && !el.hidden;
 }
 function openMailPage() {
 try { checkPendingReply(); } catch (e) {}
-render();
-updateBadge();
+try {
 document.querySelectorAll('.page').forEach(p => p.hidden = true);
 const mp = document.getElementById('page-mail');
 if (mp) mp.hidden = false;
+} catch (e) {}
+try { render(); } catch (e) {
+try { toast('信箱内容加载失败，请刷新重试'); } catch (_) {}
+}
+try { updateBadge(); } catch (e) {}
 }
 window.openMailPage = openMailPage;
 function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
@@ -54342,15 +54351,18 @@ if (box) return (box.innerText !== undefined ? box.innerText : box.textContent) 
 return v === undefined || v === null ? '' : String(v);
 }
 function bindMailApp() {
-const app = document.querySelector('.app[data-app="mail"]');
-const page = document.getElementById('page-mail');
-if (!app || !page || app.__mailBound) return;
-app.__mailBound = true;
-app.addEventListener('click', () => {
-const editing = Array.from(document.querySelectorAll('.app-grid')).some(g => g.classList.contains('editing'));
-if (editing) return;
+if (window.__mailDelegateBound) return;
+window.__mailDelegateBound = true;
+document.addEventListener('click', function (e) {
+try {
+const t = e.target;
+if (!t || !t.closest) return;
+const app = t.closest('.app[data-app="mail"]');
+if (!app) return;
+if (document.querySelector('.app-grid.editing')) return;
 openMailPage();
-});
+} catch (err) {}
+}, true);
 }
 bindMailApp();
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bindMailApp); }
@@ -80466,4 +80478,4 @@ return { lock: document.body.classList.contains('scroll-lock'), open: open };
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtpmu68y -->
+<!-- __MOCHI_EOF__ mtpo9bi5 -->
