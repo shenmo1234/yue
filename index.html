@@ -3570,10 +3570,10 @@ flex-shrink:0; width:22px; height:22px; border:none; border-radius:50%;
 background:transparent; color:#bbb; font-size:11px; cursor:pointer; padding:0;
 }
 .div-h-del:active { color:#e05555; }
-.div-mini-tarot { max-width:198px; }
-.div-mini-tarot.div-mini-single { max-width:252px; }
+.div-mini-tarot { max-width:190px; }
+.div-mini-tarot.div-mini-single { max-width:240px; }
 .div-flip {
-width:100%; aspect-ratio:5/8; max-height:376px;
+width:100%; aspect-ratio:5/8; max-height:340px;
 perspective:1000px; cursor:pointer; user-select:none;
 -webkit-tap-highlight-color:transparent; position:relative;
 }
@@ -3596,12 +3596,7 @@ position:absolute; inset:0; display:flex; align-items:center; justify-content:ce
 color:rgba(17,17,17,.55); z-index:0;
 }
 .df-ico svg { width:34%; height:34%; }
-img.df-img { position:absolute; inset:0; z-index:1; width:100%; height:100%; object-fit:cover; display:block; }
-div.df-img {
-position:absolute; inset:0; z-index:1;
-background-repeat:no-repeat;
-background-size:900% 900%;
-}
+.df-img { position:absolute; inset:0; z-index:1; width:100%; height:100%; object-fit:cover; display:block; background:transparent; }
 .df-tag {
 position:absolute; left:50%; bottom:8px; transform:translateX(-50%); z-index:2;
 background:rgba(17,17,17,.72); color:#fff; font-size:10px; font-weight:600;
@@ -3614,26 +3609,18 @@ padding:2px 8px; border-radius:99px;
 }
 .div-flip-back {
 background:#fffdf7; border:1px solid rgba(0,0,0,.08);
-transform:rotateY(180deg); padding:14px 13px 10px; gap:7px; overflow-y:auto;
+transform:rotateY(180deg); padding:12px 12px 8px; gap:6px; overflow-y:auto;
 text-align:center;
 }
-.df-b-name { font-size:15.5px; font-weight:800; color:#3a2f4b; line-height:1.25; }
+.df-b-name { font-size:15px; font-weight:800; color:#3a2f4b; line-height:1.25; }
 .df-b-pos { font-size:10px; color:#9a93a8; }
 .df-kw {
 font-size:11px; font-weight:700; color:#fff; background:#8f7fb5;
 padding:3px 10px; border-radius:99px; display:inline-block; margin-top:2px;
 }
-.df-chips {
-display:flex; flex-wrap:wrap; justify-content:center; gap:4px 5px;
-min-height:0;
-}
-.df-chip {
-font-size:10.5px; font-weight:600; color:#5d4e86; background:rgba(143,127,181,.14);
-padding:3px 9px; border-radius:99px; line-height:1.4; max-width:100%;
-overflow-wrap:anywhere;
-}
-.df-b-detail { font-size:10.5px; color:#8a8294; line-height:1.55; border-top:1px dashed rgba(0,0,0,.08); padding-top:7px; margin-top:auto; overflow-wrap:anywhere; }
-.df-b-hint { font-size:9px; color:#b7b0c0; margin-top:7px; }
+.df-b-txt { font-size:11.5px; color:#4c4357; line-height:1.6; overflow-wrap:anywhere; }
+.df-b-detail { font-size:10px; color:#8a8294; line-height:1.5; border-top:1px dashed rgba(0,0,0,.08); padding-top:6px; margin-top:auto; overflow-wrap:anywhere; }
+.df-b-hint { font-size:9px; color:#b7b0c0; margin-top:6px; }
 .div-h-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
 .div-h-bar .div-label { margin-bottom:0; }
 .div-h-ops { display:flex; gap:6px; flex-shrink:0; }
@@ -7061,7 +7048,7 @@ color-scheme:dark;
 .div-flip-back { background:#232026; border-color:var(--dark-border-12); }
 .div-flip-back .df-b-name { color:#e7e0f0; }
 .div-flip-back .df-b-pos { color:#8f8898; }
-.div-flip-back .df-chip { color:#cdbfe6; background:rgba(160,140,205,.16); }
+.div-flip-back .df-b-txt { color:#cdc5d6; }
 .div-flip-back .df-b-detail { color:#8f8898; border-top-color:rgba(255,255,255,.08); }
 .div-flip-back .df-b-hint { color:#5f5a68; }
 .div-h-btn { background:var(--dark-hover); color:var(--ink); }
@@ -9056,9 +9043,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1788686925749">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1788683575824">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-06 17:28<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-06 16:32<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -45691,23 +45678,13 @@ cards.forEach((c, i) => {
 if (m === 'tarot') {
 const src = deckSrc(c, m) || c;
 const revTxt = c.rev ? '（逆位）' : '';
-let frameIdx = -1;
-for (let fi = 0; fi < TAROT.length; fi++) { if (TAROT[fi].name === src.name) { frameIdx = fi; break; } }
-const img = frameIdx >= 0
-? '<div class="df-img" style="background-image:url(\'./tarot-sprite.jpg\');background-position:' + ((frameIdx % 9) * 12.5).toFixed(2) + '% ' + (Math.floor(frameIdx / 9) * 12.5).toFixed(2) + '%;"></div>'
-: (src.img
+const img = src.img
 ? '<img class="df-img" src="' + String(src.img).replace(/"/g, '&quot;') + '" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display=\'none\'">'
-: '');
+: '';
 const svg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + (icons[c.icon] || '') + '</svg>';
 const kw = src.keyword ? '<div class="df-kw">' + String(src.keyword).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '</div>' : '';
 const body = (c.rev ? (src.dn || src.neg || '') : (src.up || src.pos || '')) || c.meaning || '';
 const detail = (c.detail || src.detail || '');
-const chips = '<div class="df-chips">' + String(body).split(/[、，,]/).map(function (w) {
-w = w.replace(/^\s+|\s+$/g, '');
-if (!w) return '';
-const t = window.taFit ? window.taFit(w) : w;
-return '<span class="df-chip">' + String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '</span>';
-}).join('') + '</div>';
 html += '<div class="div-mini div-mini-tarot' + (cards.length === 1 ? ' div-mini-single' : '') + '" style="animation-delay:' + (i * 120) + 'ms">' +
 '<div class="div-flip">' +
 '<div class="div-flip-inner">' +
@@ -45720,7 +45697,7 @@ html += '<div class="div-mini div-mini-tarot' + (cards.length === 1 ? ' div-mini
 '<div class="df-b-name">' + String(c.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + revTxt + '</div>' +
 (labels[i] ? '<div class="df-b-pos">' + labels[i] + '</div>' : '') +
 kw +
-chips +
+'<div class="df-b-txt">' + (window.taFit ? window.taFit(body) : body) + '</div>' +
 (detail ? '<div class="df-b-detail">' + (window.taFit ? window.taFit(detail) : detail) + '</div>' : '') +
 '<div class="df-b-hint">轻点牌面返回</div>' +
 '</div>' +
@@ -80454,4 +80431,4 @@ return { lock: document.body.classList.contains('scroll-lock'), open: open };
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtpm0gxh -->
+<!-- __MOCHI_EOF__ mtpk0o40 -->
