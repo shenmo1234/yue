@@ -9061,9 +9061,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1788694657291">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1788697991390">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-06 19:37<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-06 20:33<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -24894,6 +24894,7 @@ const ICON_ENV = '<svg class="st-ico" viewBox="0 0 24 24" fill="none" stroke="cu
 const ICON_CQ_FIX = { '再等等，会遇到我': '再等等，会遇到你', '你身边': '我身边', '只给我看': '只给你看' };
 const NORM_CHUNK = 2500;
 let normTimer = null, normPrefix = null;
+let normDonePrefix = ''; // #230：已完整跑完一轮归一化且无改动的联系——进聊天免整轮重扫（历史 740+ 条每次进入都后台重扫 = 卡顿来源之一）
 function normCell(r) {
 let c = false;
 if (!r) return false;
@@ -24941,6 +24942,7 @@ if (normTimer) return;
 let pre;
 try { pre = window.activePrefix(); } catch (e) { pre = ''; }
 if (pre === normPrefix) return;
+if (normDonePrefix === pre) return;
 normPrefix = pre;
 normTimer = setTimeout(runDeferredNormalization, 80);
 }
@@ -24956,6 +24958,7 @@ if (!N) { normPrefix = null; return; }
 const finish = () => {
 try { sysNickChanged = !!sysNickCatchup(); changed = changed || sysNickChanged; } catch (e) {}
 normPrefix = null;
+try { normDonePrefix = myPre; } catch (e) {} // #230：整轮扫完即记（有改动也已渲染），下次进聊天免重扫
 if (!changed) return;
 if (authLoadedPrefix !== myPre) return;
 const canPersist = chatLedgerGuard(myPre, msgs);
@@ -26980,6 +26983,7 @@ const dts = (rec.ts || 0) - (p.ts || 0);
 if (dts >= 0 && dts <= 1200) { saveMsgs(); return null; }
 }
 msgs.push(rec);
+normDonePrefix = ''; // #230：新消息入列=该联系数据已变，下一轮归一化需重扫（防 normDonePrefix 跳过后新尾巴残留脏数据）
 chatTailAppend(rec); // #180：同步尾巴日志先落 LS，再交低频整包落盘
 saveMsgs();
 const notable = rec.side === 'in' && (!rec.special || rec.special === 'poke' || rec.special === 'gift');
@@ -27852,6 +27856,19 @@ const chatPage = document.getElementById('page-chat');
 function scrollToBottom() {
 body.scrollTop = body.scrollHeight;
 }
+function chatDomSynced() {
+try {
+if (!body || !body.children.length || !msgs.length) return false;
+if (renderStart !== 0) return false; // 上翻过（窗口已钳位）→ 重建回最新
+const ms = body.querySelectorAll('.msg');
+if (!ms.length) return false;
+if (ms.length !== msgs.length) return false; // 条数不齐 → 不全量重建
+const last = ms[ms.length - 1];
+if (!last || !last.dataset || last.dataset.idx === undefined) return false;
+if (Number(last.dataset.idx) !== msgs.length - 1) return false; // 末尾下标对不上 → 不全量重建
+return true;
+} catch (e) { return false; }
+}
 function enterChat() {
 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 const phoneTab = document.querySelector('.tab[data-page="page-phone"]');
@@ -27865,7 +27882,7 @@ if (window.applyChatSettings) window.applyChatSettings();
 clearChatUnread();
 loadMsgs();
 updateChatLoading(); // 记录未就绪时显示「正在加载聊天记录…」进度条
-renderWindow(false, true);
+if (!chatDomSynced()) renderWindow(false, true);
 scrollToBottom();
 if (window.requestAnimationFrame) {
 requestAnimationFrame(scrollToBottom);
@@ -30577,12 +30594,26 @@ chatTailDrop(msgs[idx]); // FIX 2026-09-05 #185 删除消息同步从尾巴日�
 msgs.splice(idx, 1);
 sessionChangedIdx.clear();
 saveMsgs();
-renderWindow(true);
+removeMsgDomLocal(idx);
 toast('已删除该消息');
 }
 closeMsgActions();
 }
 });
+function removeMsgDomLocal(delIdx) {
+try {
+if (!body) return;
+const el = body.querySelector('.msg[data-idx="' + delIdx + '"]');
+if (!el) { renderEnd = Math.min(renderEnd, msgs.length); return; }
+el.remove();
+body.querySelectorAll('.msg[data-idx]').forEach(function (n) {
+const v = parseInt(n.dataset.idx, 10);
+if (!isNaN(v) && v > delIdx) n.dataset.idx = String(v - 1);
+});
+if (renderEnd > delIdx) renderEnd--;
+renderEnd = Math.min(renderEnd, msgs.length);
+} catch (e) { /* 局部删除失败兜底：数据已落盘，下次整窗渲染自然对齐 */ }
+}
 }
 function toast(msg) {
 let t = document.getElementById('cc-toast');
@@ -80496,4 +80527,4 @@ return { lock: document.body.classList.contains('scroll-lock'), open: open };
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtpqm6mj -->
+<!-- __MOCHI_EOF__ mtpsln8e -->
