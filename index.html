@@ -3581,7 +3581,6 @@ perspective:1000px; cursor:pointer; user-select:none;
 position:relative; width:100%; height:100%;
 transform-style:preserve-3d; transition:transform .6s cubic-bezier(.4,.1,.2,1);
 }
-.div-flip.flipped .div-flip-inner { transform:rotateY(180deg); }
 .div-flip-face {
 position:absolute; inset:0; border-radius:14px; overflow:hidden;
 -webkit-backface-visibility:hidden; backface-visibility:hidden;
@@ -3613,10 +3612,9 @@ background:rgba(120,92,168,.85); color:#fff; font-size:10px; font-weight:700;
 padding:2px 8px; border-radius:99px;
 }
 .div-flip-back {
-background:#fffdf7; border:1px solid rgba(238,178,188,.55);
+display:none; background:#fffdf7; border:1px solid rgba(238,178,188,.55);
 padding:16px 13px 10px; gap:7px; overflow-y:auto;
 text-align:center; box-shadow:0 6px 18px rgba(180,120,140,.08);
-transform:rotateY(180deg);
 }
 .df-b-pos { font-size:10.5px; color:#9a93a8; letter-spacing:1px; margin-top:1px; }
 .df-b-name {
@@ -9063,9 +9061,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1788693044390">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1788694657291">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-06 19:10<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-06 19:37<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -45745,7 +45743,30 @@ html += '<button class="div-copy-btn" id="div-copy-btn"><svg viewBox="0 0 24 24"
 html += '</div>';
 r.innerHTML = html;
 r.querySelectorAll('.div-flip').forEach(f => f.addEventListener('click', () => {
-f.classList.toggle('flipped');
+if (f._flipBusy) return;
+const inner = f.querySelector('.div-flip-inner');
+const front = f.querySelector('.div-flip-front');
+const back = f.querySelector('.div-flip-back');
+if (!inner || !front || !back) return;
+const toBack = !f.classList.contains('flipped');
+f._flipBusy = true;
+clearTimeout(f._flipT1); clearTimeout(f._flipT2);
+const T1 = 190;
+inner.style.transition = 'transform ' + T1 + 'ms ease-in';
+inner.style.transform = 'rotateY(' + (toBack ? 90 : -90) + 'deg)';
+f._flipT1 = setTimeout(() => {
+front.style.display = toBack ? 'none' : 'flex';
+back.style.display = toBack ? 'flex' : 'none';
+inner.style.transition = 'none';
+inner.style.transform = 'rotateY(' + (toBack ? -90 : 90) + 'deg)';
+void inner.offsetWidth;
+inner.style.transition = 'transform ' + T1 + 'ms ease-out';
+inner.style.transform = 'rotateY(0deg)';
+f._flipT2 = setTimeout(() => {
+f.classList.toggle('flipped', toBack);
+f._flipBusy = false;
+}, T1 + 30);
+}, T1 + 20);
 }));
 const sendBtn = document.getElementById('div-send-btn');
 if (sendBtn) sendBtn.addEventListener('click', () => sendToChat(m, cards, summary, question));
@@ -80475,4 +80496,4 @@ return { lock: document.body.classList.contains('scroll-lock'), open: open };
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtppnm3q -->
+<!-- __MOCHI_EOF__ mtpqm6mj -->
