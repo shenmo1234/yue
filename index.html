@@ -9061,9 +9061,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1788697991390">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1788772968315">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-06 20:33<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-07 17:22<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -26973,17 +26973,16 @@ try { store.set('desk-msg-en', deskMsgToggle.checked ? '1' : '0'); } catch (e) {
 function addRec(rec) {
 if (!rec.ts) rec.ts = Date.now();
 const len = msgs.length;
-for (let i = len - 1; i >= Math.max(0, len - 5); i--) {
+for (let i = len - 1; i >= Math.max(0, len - 30); i--) {
 const p = msgs[i];
-if (!p || p.special || rec.special) continue;
+if (!p || p.special || rec.special) continue; // 系统/互动卡片不参与快速重复判定（与 collapseRapidDups 同口径）
 if ((p.side || '') !== (rec.side || '')) continue;
-if ((p.text || '') !== (rec.text || '')) continue;
-if (!!p.img !== !!rec.img) continue;
+if (dupSig(p) !== dupSig(rec)) continue;
 const dts = (rec.ts || 0) - (p.ts || 0);
-if (dts >= 0 && dts <= 1200) { saveMsgs(); return null; }
+const isMedia = !!rec.img || !!rec.voice;
+if (dts >= 0 && dts <= (isMedia ? 60000 : 2500)) { saveMsgs(); return null; }
 }
 msgs.push(rec);
-normDonePrefix = ''; // #230：新消息入列=该联系数据已变，下一轮归一化需重扫（防 normDonePrefix 跳过后新尾巴残留脏数据）
 chatTailAppend(rec); // #180：同步尾巴日志先落 LS，再交低频整包落盘
 saveMsgs();
 const notable = rec.side === 'in' && (!rec.special || rec.special === 'poke' || rec.special === 'gift');
@@ -27859,13 +27858,16 @@ body.scrollTop = body.scrollHeight;
 function chatDomSynced() {
 try {
 if (!body || !body.children.length || !msgs.length) return false;
-if (renderStart !== 0) return false; // 上翻过（窗口已钳位）→ 重建回最新
+const len = msgs.length;
+const bottomStart = Math.max(0, len - RENDER_MAX); // 底部最新窗口起点
+if (renderStart !== bottomStart) return false; // 上翻过旧窗口/窗口起点错位 → 重建回最新
+if (renderEnd < len) return false; // 增量加载未到最新/被裁剪 → 重建回最新
 const ms = body.querySelectorAll('.msg');
 if (!ms.length) return false;
-if (ms.length !== msgs.length) return false; // 条数不齐 → 不全量重建
+if (ms.length !== len - bottomStart) return false; // 条数不齐（删除/追加未收敛）→ 重建
 const last = ms[ms.length - 1];
 if (!last || !last.dataset || last.dataset.idx === undefined) return false;
-if (Number(last.dataset.idx) !== msgs.length - 1) return false; // 末尾下标对不上 → 不全量重建
+if (Number(last.dataset.idx) !== len - 1) return false; // 末尾下标对不上 → 重建
 return true;
 } catch (e) { return false; }
 }
@@ -80527,4 +80529,4 @@ return { lock: document.body.classList.contains('scroll-lock'), open: open };
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtpsln8e -->
+<!-- __MOCHI_EOF__ mtr18nsr -->
