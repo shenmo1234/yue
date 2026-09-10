@@ -9202,9 +9202,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789076274039">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789077431754">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-11 05:37<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-11 05:57<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -32270,9 +32270,10 @@ if (window.viewChatImage) window.viewChatImage(img.src);
 });
 });
 } else {
-const isVoice = f.type === 'voice' || (typeof f.text === 'string' &&
-(f.text.indexOf('|||data:audio/') > 0 || /(?:^|\|\|\|)@@m:[0-9a-f]{32}$/.test(f.text)));
-const isImg = f.type === 'sticker' || f.type === 'image' || (typeof f.text === 'string' && f.text.indexOf('data:') === 0);
+const _favTxt = typeof f.text === 'string' ? f.text : '';
+const _favTok = _favTxt.indexOf('|||') < 0 && !!(window.mochiMediaIsToken && window.mochiMediaIsToken(_favTxt));
+const isVoice = f.type === 'voice' || (_favTxt.indexOf('|||data:audio/') > 0 || /\|\|\|@@m:[0-9a-f]{32}$/.test(_favTxt));
+const isImg = f.type === 'sticker' || f.type === 'image' || _favTxt.indexOf('data:') === 0 || _favTok;
 if (isVoice) {
 b.style.padding = '8px 10px';
 fillVoiceBubble(b, f.text);
@@ -84039,4 +84040,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtw1tjzr -->
+<!-- __MOCHI_EOF__ mtw2idai -->
