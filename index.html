@@ -2665,18 +2665,39 @@ padding:10px 4px 6px; margin-top:4px;
 }
 .ccg-name { font-size:13px; font-weight:700; letter-spacing:.5px; color:#444; }
 .ccg-count { font-size:11px; color:var(--muted); background:rgba(0,0,0,.05); padding:1px 8px; border-radius:99px; }
-#cc-list .cc-group-header .ccg-name { display:inline-flex; align-items:center; gap:6px; flex:1; min-width:0; }
+#cc-list .cc-group-header .ccg-name,
+#dc-list .cc-group-header .ccg-name,
+#fc-list .cc-group-header .ccg-name,
+#dk-list .cc-group-header .ccg-name { display:inline-flex; align-items:center; gap:6px; flex:1; min-width:0; }
 .ccg-off-tag { font-style:normal; font-size:10px; font-weight:600; color:#fff; background:#d64545; padding:1px 6px; border-radius:99px; letter-spacing:.3px; }
-#cc-list .ccg-toggle {
+#cc-list .ccg-toggle,
+#dc-list .ccg-toggle,
+#fc-list .ccg-toggle,
+#dk-list .ccg-toggle {
 display:inline-flex; align-items:center; justify-content:center;
 width:26px; height:26px; padding:0; border-radius:8px; flex-shrink:0; cursor:pointer;
 border:1px solid rgba(0,0,0,.08); background:rgba(0,0,0,.03); color:var(--muted);
 }
-#cc-list .ccg-toggle svg { width:14px; height:14px; }
-#cc-list .ccg-toggle:active { background:#111; color:#fff; }
-#cc-list .ccg-toggle.off { background:#111; color:#fff; border-color:#111; }
-#cc-list .cc-group-header.off .ccg-name { color:var(--muted); }
-#cc-list .cc-group-header.off .ccg-count { opacity:.6; }
+#cc-list .ccg-toggle svg,
+#dc-list .ccg-toggle svg,
+#fc-list .ccg-toggle svg,
+#dk-list .ccg-toggle svg { width:14px; height:14px; }
+#cc-list .ccg-toggle:active,
+#dc-list .ccg-toggle:active,
+#fc-list .ccg-toggle:active,
+#dk-list .ccg-toggle:active { background:#111; color:#fff; }
+#cc-list .ccg-toggle.off,
+#dc-list .ccg-toggle.off,
+#fc-list .ccg-toggle.off,
+#dk-list .ccg-toggle.off { background:#111; color:#fff; border-color:#111; }
+#cc-list .cc-group-header.off .ccg-name,
+#dc-list .cc-group-header.off .ccg-name,
+#fc-list .cc-group-header.off .ccg-name,
+#dk-list .cc-group-header.off .ccg-name { color:var(--muted); }
+#cc-list .cc-group-header.off .ccg-count,
+#dc-list .cc-group-header.off .ccg-count,
+#fc-list .cc-group-header.off .ccg-count,
+#dk-list .cc-group-header.off .ccg-count { opacity:.6; }
 .card-search {
 display:flex; align-items:center; gap:8px;
 border-radius:16px; padding:11px 14px; margin-bottom:12px;
@@ -9337,9 +9358,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789112627275">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789115469771">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-11 15:43<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-11 16:31<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -43650,6 +43671,7 @@ function toastCard(txt, off) {
 const s = String(txt == null ? '' : txt);
 toast((off ? '已关闭：' : '已开启：') + (s.length > 18 ? s.slice(0, 18) + '…' : s));
 }
+let GOFF_VER = 0;
 function apiFor(st) {
 const gE = function () { const v = st.get('dc-enabled'); return v === null ? true : v === '1'; };
 const gO = function () { const v = st.get('dc-overall'); return v === null ? 30 : Number(v); };
@@ -43657,7 +43679,36 @@ const gOS = function (k) { const v = st.get('dc-overall-' + k); return v === nul
 const gP = function (k) { const v = st.get('dc-prob-' + k); return v === null ? 25 : Number(v); };
 const gU = function (k) { const v = st.get('dc-use-' + k); return v === null ? true : v === '1'; };
 const gC = function (k) { const v = st.get('dc-cat-' + k); return v === null ? true : v === '1'; };
-const gOff = function (cat, c) { return st.get('dc-off-' + cat + ':' + c) === '1'; };
+let _gSet = null, _gSetVer = -1;   // 分组停用反查缓存（版本号不一致时重建）
+const gGOList = function () {
+let o = {};
+try { const v = st.get('dc-goff'); if (v) { const p = JSON.parse(v); if (p && typeof p === 'object') o = p; } } catch (e) {}
+return o;
+};
+const gGOSet = function () {
+if (_gSet && _gSetVer === GOFF_VER) return _gSet;
+const s = new Set();
+try {
+const o = gGOList();
+for (const cat in o) {
+const arr = o[cat];
+if (!arr || !arr.length) continue;
+(DATA[cat] || []).forEach(function (g) {
+if (arr.indexOf(g[0]) < 0) return;
+(g[1] || []).forEach(function (c) { s.add(cat + '\u0000' + c); });
+});
+}
+} catch (e) {}
+_gSet = s; _gSetVer = GOFF_VER; return s;
+};
+const gGo = function (cat, gname) {
+try { const arr = gGOList()[cat]; return !!(arr && arr.indexOf(gname) >= 0); } catch (e) { return false; }
+};
+const gOff = function (cat, c) {
+if (st.get('dc-off-' + cat + ':' + c) === '1') return true;
+const s = gGOSet();
+return s.size > 0 && s.has(cat + '\u0000' + c);
+};
 return {
 enabled: gE,
 overall: gO,
@@ -43666,6 +43717,7 @@ prob: gP,
 use: gU,
 cat: gC,
 isOff: gOff,
+goff: gGo,
 cfg: function () {
 return { enabled: gE(), overall: gO(), overallFor: gOS, probs: { main: gP('main'), kaomoji: gP('kaomoji'), emoji: gP('emoji'), touch: gP('touch') } };
 }
@@ -43711,6 +43763,7 @@ if (gw) gw[1] = gw[1].concat(ws);
 else if (ws.length) base.push(['词库·自建', ws.slice()]);
 DATA.dict = base;
 window.__dictCustomSet = new Set(qs.concat(ws));
+GOFF_VER++;   // #302x：自定义词条变化 → 组停用反查缓存重建
 } catch (e) {}
 }
 mergeDictCustom();
@@ -43775,6 +43828,22 @@ refreshLibCount();
 function isCardOff(cat, c) { return api.isOff(cat, c); }
 function setCardOff(cat, c, off) { ls.set('dc-off-' + cat + ':' + c, off ? '1' : '0'); }
 window.isDefaultCardOff = function (cat, c) { return isCardOff(cat, c); };
+function isGroupOff(cat, gname) { return api.goff(cat, gname); }
+function toggleGroupOff(cat, gname) {
+let o = {};
+try { const v = ls.get('dc-goff'); if (v) { const p = JSON.parse(v); if (p && typeof p === 'object') o = p; } } catch (e) {}
+if (!Array.isArray(o[cat])) o[cat] = [];
+const i = o[cat].indexOf(gname);
+const nowOff = i < 0;
+if (nowOff) o[cat].push(gname); else o[cat].splice(i, 1);
+if (!o[cat].length) delete o[cat];
+ls.set('dc-goff', JSON.stringify(o));
+GOFF_VER++;   // 反查缓存失效（各桌面 store 实例按版本号自动重建）
+return nowOff;
+}
+window.isDefaultCardGroupOff = function (cat, gname) { return isGroupOff(cat, gname); };
+window.defaultCardGroupOff = window.isDefaultCardGroupOff;
+window.defaultCardGroupToggle = toggleGroupOff;
 let cur = 'main';
 let q = '';
 enabledEl.checked = getEnabled();
@@ -43917,6 +43986,8 @@ const deEl = document.getElementById('dcf-enabled');
 if (deEl) deEl.checked = dcfEnabled();
 } catch (e) {}
 });
+const ICON_EYE_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
 const V_PAD = 0.8;    // 视口上下各多渲染 0.8 屏（重建频率 ≈ 每滚 0.8 屏一次）
 const V_MINW = 24;    // 窗口条目数下限（小屏/高条目时兜底，避免窗口过窄）
 const V_EST = 55;     // 未实测条目高度初值：.cc-item 13+13 padding + 行高 + 9 margin
@@ -43999,8 +44070,11 @@ return Math.max(0, Math.min(n - 1, a - 1));
 function makeNode(it, i) {
 const d = document.createElement('div');
 if (it.header) {
-d.className = 'cc-group-header';
-d.innerHTML = '<span class="ccg-name">' + it.gname + '</span><span class="ccg-count">' + it.count + '</span>';
+const goff = isGroupOff(it.cat, it.raw);
+d.className = 'cc-group-header' + (goff ? ' off' : '');
+d.innerHTML = '<span class="ccg-name">' + it.gname + (goff ? '<em class="ccg-off-tag">已停用</em>' : '') + '</span>' +
+'<span class="ccg-count">' + it.count + '</span>' +
+'<button type="button" class="ccg-toggle' + (goff ? ' off' : '') + '" title="' + (goff ? '启用该分组' : '停用该分组') + '">' + (goff ? ICON_EYE_OFF : ICON_EYE_ON) + '</button>';
 } else {
 const off = isCardOff(it.cat, it.c);
 d.className = 'cc-item glass' + (off ? ' off' : '');
@@ -44113,7 +44187,7 @@ shown = shown.filter(g => g.gname === view.curGroup);
 }
 const list = [];
 shown.forEach(it => {
-list.push({ header: true, gname: (it.key !== view.cur ? '[' + tabLabel(it.key) + '] ' : '') + it.gname, count: it.arr.length });
+list.push({ header: true, cat: it.key, raw: it.gname, gname: (it.key !== view.cur ? '[' + tabLabel(it.key) + '] ' : '') + it.gname, count: it.arr.length });
 it.arr.forEach(c => list.push({ header: false, c, cat: it.key }));
 });
 flat = list; n = list.length;
@@ -44137,6 +44211,19 @@ const nowOff = !input.checked;
 setCardOff(rec.cat || view.cur, rec.c, nowOff);
 item.classList.toggle('off', nowOff);
 toastCard(rec.c, nowOff);
+});
+viewList.addEventListener('click', function (e) {
+const tog = e.target && e.target.closest && e.target.closest('.ccg-toggle');
+if (!tog) return;
+e.preventDefault();
+const h = tog.closest('.cc-group-header');
+if (!h) return;
+const rec = flat[Number(h.dataset.idx)];
+if (!rec || !rec.header) return;
+const nowOff = toggleGroupOff(rec.cat, rec.raw);
+toast(nowOff ? '已停用分组「' + rec.raw + '」：' + rec.count + ' 张字卡不再参与抽取'
+: '已启用分组「' + rec.raw + '」：' + rec.count + ' 张字卡恢复参与抽取');
+requestLayout(true);   // 重排窗口：组内单卡勾选态与组头停用标记同步刷新
 });
 viewTabs.addEventListener('click', (e) => {
 const tab = e.target.closest('.cc-tab[data-type]');
@@ -89033,4 +89120,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtwngqbv -->
+<!-- __MOCHI_EOF__ mtwp5nm3 -->
