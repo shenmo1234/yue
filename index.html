@@ -9358,9 +9358,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789115469771">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789125469348">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-11 16:31<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-11 19:17<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -11456,9 +11456,12 @@ html.dark #page-video .vd-now { color: #777; }
           <div class="gs-title">联系人回信</div>
           <div class="set-group glass">
             <div class="gs-row"><span>回信概率</span><div class="stepper" data-k="ml-reply-prob" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="ml-reply-prob-val" readonly><button class="stp-max">+</button></div></div>
-            <div class="gs-row"><span>最短回信时间（分钟）</span><div class="stepper" data-k="ml-reply-min" data-min="1" data-max="1440" data-step="1"><button class="stp-min">−</button><input class="stp-val" id="ml-reply-min-val" readonly><button class="stp-max">+</button></div></div>
-            <div class="gs-row"><span>最长回信时间（分钟）</span><div class="stepper" data-k="ml-reply-max" data-min="1" data-max="1440" data-step="60"><button class="stp-min">−</button><input class="stp-val" id="ml-reply-max-val" readonly><button class="stp-max">+</button></div></div>
+            <div class="gs-row"><span>固定回信时间</span><label class="toggle"><input type="checkbox" id="ml-reply-fixed"><span class="tk"></span></label></div>
+            <div class="gs-row"><span>固定时长（小时）</span><div class="stepper" data-k="ml-reply-fixed-h" data-min="1" data-max="48" data-step="1"><button class="stp-min">−</button><input class="stp-val" id="ml-reply-fixed-h-val" readonly><button class="stp-max">+</button></div></div>
+            <div class="gs-row"><span>最短回信时间（分钟）</span><div class="stepper" data-k="ml-reply-min" data-min="300" data-max="1440" data-step="30"><button class="stp-min">−</button><input class="stp-val" id="ml-reply-min-val" readonly><button class="stp-max">+</button></div></div>
+            <div class="gs-row"><span>最长回信时间（分钟）</span><div class="stepper" data-k="ml-reply-max" data-min="300" data-max="1440" data-step="30"><button class="stp-min">−</button><input class="stp-val" id="ml-reply-max-val" readonly><button class="stp-max">+</button></div></div>
           </div>
+          <div class="gs-sub" style="padding:0 14px 10px">开启「固定回信时间」后，TA 固定隔 N 小时回信；关闭时在「最短~最长回信时间」之间随机（默认 300~1440 分钟 = 5~24 小时）。寄信/回信后会有「预计何时收到回信」提示。</div>
           <div class="gs-title">写信内容类型</div>
           <div class="set-group glass">
             <div class="gs-row"><span>来信内容使用颜文字</span><label class="toggle"><input type="checkbox" id="ml-kaomoji-en"><span class="tk"></span></label></div>
@@ -14630,6 +14633,11 @@ html.dark #page-video .vd-now { color: #777; }
 (function () { try {
 (function () {
 try { window.__jsErrors = window.__jsErrors || []; } catch (e0) {}
+try {
+if (window.JSInterface && typeof window.JSInterface.sysonSelectTextChange !== 'function') {
+window.JSInterface.sysonSelectTextChange = function () {};
+}
+} catch (e1) {}
 let isMobile = false;
 try { isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches; } catch (e) {}
 let mobileRule = isMobile ? 'viewport<=900' : '';
@@ -42589,7 +42597,8 @@ const DEFAULTS = {
 'ml-write-prob': 30, 'ml-write-min': 1, 'ml-write-max': 480,
 'ml-write-daily-max': 3,
 'ml-write-en': 1,
-'ml-reply-prob': 80, 'ml-reply-min': 1, 'ml-reply-max': 480,
+'ml-reply-prob': 80, 'ml-reply-min': 300, 'ml-reply-max': 1440,
+'ml-reply-fixed': 0, 'ml-reply-fixed-h': 8,
 'ml-kaomoji-en': 1, 'ml-emoji-en': 1, 'ml-sticker-en': 1,
 'fd-like-prob': 60, 'fd-like-speed-min': 1, 'fd-like-speed-max': 60,
 'fd-comment-prob': 70, 'fd-comment-speed-min': 1, 'fd-comment-speed-max': 60,
@@ -42681,7 +42690,7 @@ val.value = str;
 val.setAttribute('value', str);
 }
 });
-['py-en', 'as-en', 'dnd-en', 'as-badge', 'ml-kaomoji-en', 'ml-emoji-en', 'ml-sticker-en', 'cs-normal', 'cs-trigger-name', 'cs-trigger-bar', 'gc-py-en', 'ai-rps-en', 'ai-game-en', 'ai-cuddle-en', 'ai-cc-en', 'ckq-en', 'call-resume', 'call-no-hangup', 'ml-write-en', 'fd-post-en', 'qs-en', 'qs-cc', 'qs-one'].forEach(k => {
+['py-en', 'as-en', 'dnd-en', 'as-badge', 'ml-kaomoji-en', 'ml-emoji-en', 'ml-sticker-en', 'cs-normal', 'cs-trigger-name', 'cs-trigger-bar', 'gc-py-en', 'ai-rps-en', 'ai-game-en', 'ai-cuddle-en', 'ai-cc-en', 'ckq-en', 'call-resume', 'call-no-hangup', 'ml-write-en', 'ml-reply-fixed', 'fd-post-en', 'qs-en', 'qs-cc', 'qs-one'].forEach(k => {
 const el = document.getElementById(k);
 if (el) el.checked = cfg[k] === 1;
 });
@@ -42763,7 +42772,7 @@ try { val.blur(); } catch (err) {}
 }
 });
 });
-['py-en', 'as-en', 'dnd-en', 'as-badge', 'ml-kaomoji-en', 'ml-emoji-en', 'ml-sticker-en', 'cs-normal', 'cs-trigger-name', 'cs-trigger-bar', 'gc-py-en', 'ai-rps-en', 'ai-game-en', 'ai-cuddle-en', 'ai-cc-en', 'ckq-en', 'call-resume', 'call-no-hangup', 'ml-write-en', 'fd-post-en', 'qs-en', 'qs-cc', 'qs-one'].forEach(k => {
+['py-en', 'as-en', 'dnd-en', 'as-badge', 'ml-kaomoji-en', 'ml-emoji-en', 'ml-sticker-en', 'cs-normal', 'cs-trigger-name', 'cs-trigger-bar', 'gc-py-en', 'ai-rps-en', 'ai-game-en', 'ai-cuddle-en', 'ai-cc-en', 'ckq-en', 'call-resume', 'call-no-hangup', 'ml-write-en', 'ml-reply-fixed', 'fd-post-en', 'qs-en', 'qs-cc', 'qs-one'].forEach(k => {
 const el = document.getElementById(k);
 if (el) {
 el.addEventListener('change', () => {
@@ -42807,7 +42816,7 @@ v = Math.min(max, Math.max(min, v));
 window.saveReplyCfg(k, v);
 }
 });
-['py-en', 'as-en', 'dnd-en', 'as-badge', 'ml-kaomoji-en', 'ml-emoji-en', 'ml-sticker-en', 'cs-normal', 'cs-trigger-name', 'cs-trigger-bar', 'gc-py-en', 'ai-rps-en', 'ai-game-en', 'ai-cuddle-en', 'ai-cc-en', 'ckq-en', 'call-resume', 'call-no-hangup', 'ml-write-en', 'fd-post-en', 'qs-en', 'qs-cc', 'qs-one'].forEach(k => {
+['py-en', 'as-en', 'dnd-en', 'as-badge', 'ml-kaomoji-en', 'ml-emoji-en', 'ml-sticker-en', 'cs-normal', 'cs-trigger-name', 'cs-trigger-bar', 'gc-py-en', 'ai-rps-en', 'ai-game-en', 'ai-cuddle-en', 'ai-cc-en', 'ckq-en', 'call-resume', 'call-no-hangup', 'ml-write-en', 'ml-reply-fixed', 'fd-post-en', 'qs-en', 'qs-cc', 'qs-one'].forEach(k => {
 const el = document.getElementById(k);
 if (el) window.saveReplyCfg(k, el.checked ? 1 : 0);
 });
@@ -42933,6 +42942,26 @@ try { if (window.console && console.log) console.log('[reply-settings] 已迁移
 } catch (e) {}
 }
 migrateMailMaxOld();
+function migrateMailReplyWindow() {
+try {
+if (!window.getContacts || !window.storeFor) return;
+const cids = [window.__activeCid || 'default'];
+(window.getContacts() || []).forEach(c => { if (c.id && cids.indexOf(c.id) === -1) cids.push(c.id); });
+let changed = false;
+cids.forEach(cid => {
+try {
+const s = window.storeFor(cid);
+if (!s) return;
+if (String(s.get('reply-ml-reply-min')) === '1') { s.set('reply-ml-reply-min', '300'); changed = true; }
+if (String(s.get('reply-ml-reply-max')) === '480') { s.set('reply-ml-reply-max', '1440'); changed = true; }
+} catch (e) {}
+});
+if (changed) {
+try { if (window.console && console.log) console.log('[reply-settings] 已迁移信箱回信时间窗口 1~480 → 300~1440 分钟'); } catch (e) {}
+}
+} catch (e) {}
+}
+migrateMailReplyWindow();
 function migrateQsCcOld() {
 try {
 if (!window.getContacts || !window.storeFor) return;
@@ -44851,7 +44880,8 @@ specialLastTime = 0;
 });
 })();
 } catch (__e) { try { console.error("[JS] mood-reply-cards.js", __e && __e.message || __e); } catch (x) {} if (window.__jsErrors) window.__jsErrors.push(String(__e && __e.message || __e)); } })();
-(function () { try {
+</script>
+<script>(function () { try {
 window.TA_MOOD_DATA = {
 groups: [
 { group: '平静', weight: 15 },
@@ -45109,8 +45139,7 @@ cards: [
 ]
 };
 } catch (__e) { try { console.error("[JS] ta-mood-data.js", __e && __e.message || __e); } catch (x) {} if (window.__jsErrors) window.__jsErrors.push(String(__e && __e.message || __e)); } })();
-</script>
-<script>(function () { try {
+(function () { try {
 (function () {
 const ls = window.activeStore();
 const DATA = window.TA_MOOD_DATA || { groups: [], cards: [] };
@@ -47565,7 +47594,7 @@ if (progressTimer) clearInterval(progressTimer);
 progressTimer = setInterval(() => {
 if (!audio) return;
 checkAutoEnd();
-if (!audio.duration) return;
+if (!audio || !audio.duration) return;
 if (audio.currentTime > 0) clearStallGuard();
 const cur = document.getElementById('sm-pb-cur');
 if (cur) cur.textContent = fmtDur(audio.currentTime);
@@ -58531,9 +58560,9 @@ favAlready = favArr.some(x => (x.kind || 'msg') === 'mail' && x.mailType === 're
 }
 let footer = '';
 if (canFav && !l.myReply) {
-footer = '<div class="mail-actions"><button class="cc-tool" id="mail-fav-btn">' + (favAlready ? '已收藏' : '收藏来信') + '</button><button class="cc-tool" id="mail-reply-btn">提笔回信</button><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
+footer = '<div class="mail-actions"><button class="cc-tool" id="mail-fav-btn">' + (favAlready ? '已收藏' : '收藏来信') + '</button><button class="cc-tool" id="mail-edit-btn">编辑</button><button class="cc-tool" id="mail-reply-btn">提笔回信</button><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
 } else if (canFav) {
-footer = '<div class="mail-actions"><button class="cc-tool" id="mail-fav-btn">' + (favAlready ? '已收藏' : '收藏来信') + '</button><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
+footer = '<div class="mail-actions"><button class="cc-tool" id="mail-fav-btn">' + (favAlready ? '已收藏' : '收藏来信') + '</button><button class="cc-tool" id="mail-edit-btn">编辑</button><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
 } else if (l.type === 'sent') {
 footer = '<div class="mail-actions"><button class="cc-tool" id="mail-edit-btn">编辑</button><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
 } else {
@@ -58564,7 +58593,7 @@ if (close2) close2.addEventListener('click', () => { document.getElementById('tc
 const replyBtn = document.getElementById('mail-reply-btn');
 if (replyBtn) replyBtn.addEventListener('click', () => openReply(l));
 const editBtn = document.getElementById('mail-edit-btn');
-if (editBtn) editBtn.addEventListener('click', () => openEditSent(l));
+if (editBtn) editBtn.addEventListener('click', () => (l.type === 'sent' ? openEditSent(l) : openEditRecv(l)));
 const delBtn = document.getElementById('mail-del-btn');
 if (delBtn) delBtn.addEventListener('click', () => deleteLetter(l));
 const favBtn = document.getElementById('mail-fav-btn');
@@ -58583,6 +58612,7 @@ if (el) el.hidden = false;
 }
 function openReply(l) {
 viewEditSent = null;
+viewEditRecv = null;
 const modeEl = document.getElementById('mail-reply-mode');
 if (modeEl) modeEl.textContent = '回信';
 const sendTxtEl = document.getElementById('mail-reply-send-txt');
@@ -58610,6 +58640,7 @@ document.getElementById('tc-mask').hidden = true;
 showPage('page-mail-reply');
 }
 let viewEditSent = null;
+let viewEditRecv = null;
 function openEditSent(l) {
 try {
 if (l && l.id) {
@@ -58619,6 +58650,7 @@ if (fresh && fresh.id) l = fresh;
 } catch (e) {}
 if (!l || l.type !== 'sent') return;
 viewEditSent = l.id;
+viewEditRecv = null; // v3.34.x #320：清来信编辑态，防两类编辑态交叉
 viewLetter = l;
 const name = partnerName();
 const origEl = document.getElementById('mail-reply-original');
@@ -58639,27 +58671,60 @@ if (back) back.dataset.mode = 'edit';
 document.getElementById('tc-mask').hidden = true;
 showPage('page-mail-reply');
 }
+function openEditRecv(l) {
+try {
+if (l && l.id) {
+const fresh = load().find(x => x.id === l.id);
+if (fresh && fresh.id) l = fresh;
+}
+} catch (e) {}
+if (!l || l.type !== 'received') return;
+viewEditRecv = l.id;
+viewEditSent = null;
+viewLetter = l;
+const name = partnerName();
+const origEl = document.getElementById('mail-reply-original');
+if (origEl) {
+origEl.innerHTML = letterPaper(l.tt || '来信', l.content, fmtDT(l.tm), name, true);
+bindLetterImgClicks(origEl);
+}
+const toEl = document.getElementById('mail-reply-to');
+if (toEl) toEl.textContent = name;
+const titleMode = document.getElementById('mail-reply-mode');
+if (titleMode) titleMode.textContent = '编辑来信';
+const sendTxt = document.getElementById('mail-reply-send-txt');
+if (sendTxt) sendTxt.textContent = '保存修改';
+const back = document.getElementById('mail-reply-back');
+if (back) back.dataset.mode = 'edit';
+const input = document.getElementById('mail-reply-input');
+if (input) input.value = l.content || '';
+document.getElementById('tc-mask').hidden = true;
+showPage('page-mail-reply');
+}
 function submitReply() {
 const l = viewLetter;
 if (!l) return;
-if (viewEditSent && l.id === viewEditSent) {
+const editId = viewEditSent || viewEditRecv;
+if (editId && l.id === editId) {
+const isSent = !!(viewEditSent && l.id === viewEditSent);
 const val2 = readMailVal(document.getElementById('mail-reply-input')).trim();
 if (!val2) { toast('内容不能为空'); return; }
 const list2 = load();
 const i2 = list2.findIndex(x => x.id === l.id);
 if (i2 >= 0) {
 list2[i2].content = val2;
-if (list2[i2].myReply) list2[i2].myReply.content = val2;
+if (isSent && list2[i2].myReply) list2[i2].myReply.content = val2;
 list2[i2].edited = true;
 save(list2);
 }
 viewEditSent = null;
+viewEditRecv = null;
 viewLetter = null;
 showPage('page-mail');
-selectMailTab('out');
+selectMailTab(isSent ? 'out' : 'in');
 render();
 updateBadge();
-if (window.chatAddSystem) window.chatAddSystem('你修改了寄出的信', { mailNotice: true });
+if (isSent && window.chatAddSystem) window.chatAddSystem('你修改了寄出的信', { mailNotice: true });
 toast('修改已保存');
 return;
 }
@@ -58674,10 +58739,11 @@ list[idx].myReply = { content: val, tm: Date.now() };
 const cfg = mailCfg();
 if (Math.random() * 100 < cfg.replyProb) {
 const replyMsg = taLetterContent(cfg);
-const delayMs = (cfg.replyMin + Math.random() * Math.max(1, cfg.replyMax - cfg.replyMin)) * 60000;
+const delayMs = replyDelayMs(cfg);
 const pending = replyPendingLoad();
 pending.push({ id: l.id, due: Date.now() + delayMs, content: replyMsg });
 replyPendingSave(pending);
+dueMsg = replyDueMsg(delayMs);
 }
 save(list);
 viewLetter = null;
@@ -58817,10 +58883,11 @@ let dueMsg = '';
 const cfg = mailCfg();
 if (Math.random() * 100 < cfg.replyProb) {
 const replyMsg = taLetterContent(cfg);
-const delayMs = (cfg.replyMin + Math.random() * Math.max(1, cfg.replyMax - cfg.replyMin)) * 60000;
+const delayMs = replyDelayMs(cfg);
 const pending = replyPendingLoad();
 pending.push({ id: letter.id, due: Date.now() + delayMs, content: replyMsg });
 replyPendingSave(pending);
+dueMsg = replyDueMsg(delayMs);
 }
 if (input) input.value = '';
 if (input && input.__ceBox) input.__ceBox.textContent = '';
@@ -58853,12 +58920,30 @@ writeMin: c['ml-write-min'] !== undefined ? c['ml-write-min'] : 1,
 writeMax: c['ml-write-max'] !== undefined ? c['ml-write-max'] : 120,
 dailyMax: c['ml-write-daily-max'] !== undefined ? Number(c['ml-write-daily-max']) : 3,
 replyProb: prob('ml-reply-prob', 80),
-replyMin: c['ml-reply-min'] !== undefined ? c['ml-reply-min'] : 1,
-replyMax: c['ml-reply-max'] !== undefined ? c['ml-reply-max'] : 120,
+replyMin: (c['ml-reply-min'] !== undefined && c['ml-reply-min'] !== '') ? Number(c['ml-reply-min']) : 300,
+replyMax: (c['ml-reply-max'] !== undefined && c['ml-reply-max'] !== '') ? Number(c['ml-reply-max']) : 1440,
+replyFixed: c['ml-reply-fixed'] !== undefined ? Number(c['ml-reply-fixed']) : 0,
+replyFixedH: (c['ml-reply-fixed-h'] !== undefined && c['ml-reply-fixed-h'] !== '') ? Number(c['ml-reply-fixed-h']) : 8,
 kaomojiEn: c['ml-kaomoji-en'] !== undefined ? c['ml-kaomoji-en'] : 1,
 emojiEn: c['ml-emoji-en'] !== undefined ? c['ml-emoji-en'] : 1,
 stickerEn: c['ml-sticker-en'] !== undefined ? c['ml-sticker-en'] : 1
 };
+}
+function replyDelayMs(cfg) {
+try {
+if (cfg && Number(cfg.replyFixed) > 0 && Number(cfg.replyFixedH) > 0) return Number(cfg.replyFixedH) * 3600000;
+const a = Math.max(1, Number(cfg && cfg.replyMin) || 300);
+const b = Math.max(a, Number(cfg && cfg.replyMax) || a);
+return (a + Math.random() * Math.max(1, b - a)) * 60000;
+} catch (e) { return 300 * 60000; }
+}
+function replyDueMsg(delayMs) {
+if (!delayMs || !isFinite(delayMs)) return '';
+const mins = Math.max(1, Math.round(delayMs / 60000));
+const span = mins >= 60
+? (mins % 60 ? Math.floor(mins / 60) + ' 小时 ' + (mins % 60) + ' 分' : (mins / 60) + ' 小时')
+: mins + ' 分钟';
+return '，预计 ' + span + '后（' + fmtDT(Date.now() + delayMs) + '）收到回信';
 }
 function mailCfgFor(cid) {
 const cfg = mailCfg();
@@ -58870,6 +58955,7 @@ const s = window.storeFor(cid);
 ['ml-write-prob', 'writeProb'], ['ml-write-min', 'writeMin'], ['ml-write-max', 'writeMax'],
 ['ml-write-daily-max', 'dailyMax'], ['ml-reply-prob', 'replyProb'],
 ['ml-reply-min', 'replyMin'], ['ml-reply-max', 'replyMax'],
+['ml-reply-fixed', 'replyFixed'], ['ml-reply-fixed-h', 'replyFixedH'],
 ['ml-kaomoji-en', 'kaomojiEn'], ['ml-emoji-en', 'emojiEn'], ['ml-sticker-en', 'stickerEn']
 ].forEach(pair => {
 try {
@@ -59205,7 +59291,7 @@ if (mailWriteBack) mailWriteBack.addEventListener('click', () => { if (window.cl
 const mailSend = document.getElementById('mail-send');
 if (mailSend) mailSend.addEventListener('click', sendLetter);
 const mailReplyBack = document.getElementById('mail-reply-back');
-if (mailReplyBack) mailReplyBack.addEventListener('click', () => { if (window.closeEmojiPanel) window.closeEmojiPanel(); viewLetter = null; showPage('page-mail'); });
+if (mailReplyBack) mailReplyBack.addEventListener('click', () => { if (window.closeEmojiPanel) window.closeEmojiPanel(); viewLetter = null; viewEditSent = null; viewEditRecv = null; showPage('page-mail'); });
 const mailReplySend = document.getElementById('mail-reply-send');
 if (mailReplySend) mailReplySend.addEventListener('click', submitReply);
 function selectMailTab(name) {
@@ -89120,4 +89206,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtwp5nm3 -->
+<!-- __MOCHI_EOF__ mtwv3zc4 -->
