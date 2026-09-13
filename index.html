@@ -9550,9 +9550,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789262600358">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789312624891">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 09:23<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-13 23:17<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -28933,6 +28933,7 @@ body.appendChild(d);
 }
 let suppressScrollUntil = 0; // 程序化滚动后短暂忽略 scroll 事件（防渲染本身触发向上加载）
 function renderWindow(keepScroll, clampTop) {
+try { window.__rwStk = window.__rwStk || []; window.__rwStk.push(String(new Error().stack).split('\n').slice(1, 4).join(' | ')); if (window.__rwStk.length > 40) window.__rwStk.shift(); } catch (e) {}
 const len = msgs.length;
 const prevTop = keepScroll ? body.scrollTop : 0;
 const prevHeight = keepScroll ? body.scrollHeight : 0;
@@ -29121,8 +29122,10 @@ appendTarget = null;
 batchRendering = false;
 renderStart = newStart;
 if (preNum > 0 && anchor) {
+const rBefore = anchor.getBoundingClientRect().top;
 body.insertBefore(frag, anchor);
-body.scrollTop = beforeTop + anchor.offsetTop;
+const rAfter = anchor.getBoundingClientRect().top;
+body.scrollTop = beforeTop + (rAfter - rBefore);
 } else {
 body.scrollTop = body.scrollHeight; // 原窗口为空，直接滚到底
 }
@@ -29163,25 +29166,100 @@ suppressScrollUntil = Date.now() + 200;
 function pruneWindowBottom() {
 const targetEnd = renderStart + WINDOW_MAX;
 if (renderEnd <= targetEnd) return;
-while (body.lastChild) {
+const nearBottom = chatNearBottom();
+const prevTop = body.scrollTop, prevH = body.scrollHeight;
+const br = body.getBoundingClientRect();
+let guard = 0;
+while (body.lastChild && guard++ < 4000) {
 const last = body.lastChild;
 const idx = last.dataset.idx;
 if (idx !== undefined && parseInt(idx, 10) < targetEnd) break; // 已到应保留区
+if (idx !== undefined && last.getBoundingClientRect().top < br.bottom + 4) break;
 body.removeChild(last);
 }
-renderEnd = targetEnd;
+let maxIdx = renderStart - 1;
+for (let k = 0; k < body.children.length; k++) {
+const el = body.children[k];
+if (!el.dataset || el.dataset.idx === undefined) continue;
+const v = parseInt(el.dataset.idx, 10);
+if (isFinite(v) && v > maxIdx) maxIdx = v;
 }
-function pruneWindowTop() {
-const targetStart = renderEnd - WINDOW_MAX;
+const domEnd = Math.max(renderStart, maxIdx + 1);
+renderEnd = Math.max(targetEnd, domEnd);
+const dH = body.scrollHeight - prevH;
+if (dH) {
+if (nearBottom) scrollChatBottom(); // 原在底部：裁剪后保持贴底
+else body.scrollTop = Math.max(0, prevTop + dH); // 否则按高度差补偿，视口内容不跳
+}
+suppressScrollUntil = Date.now() + 200;
+}
+function pruneWindowTop(limit) {
+const cap = (typeof limit === 'number' && limit > 0) ? limit : WINDOW_MAX;
+const targetStart = renderEnd - cap;
 if (renderStart >= targetStart) return;
-while (body.firstChild) {
+const nearBottom = chatNearBottom();
+const prevTop = body.scrollTop, prevH = body.scrollHeight;
+const br = body.getBoundingClientRect();
+let guard = 0;
+while (body.firstChild && guard++ < 4000) {
 const f = body.firstChild;
 const idx = f.dataset.idx;
 if (idx !== undefined && parseInt(idx, 10) >= targetStart) break; // 已到应保留区
+if (idx !== undefined && f.getBoundingClientRect().bottom > br.top - 4) break;
 body.removeChild(f);
 }
-renderStart = targetStart;
+let minIdx = -1;
+for (let k = 0; k < body.children.length; k++) {
+const el = body.children[k];
+if (!el.dataset || el.dataset.idx === undefined) continue;
+const v = parseInt(el.dataset.idx, 10);
+if (isFinite(v) && (minIdx < 0 || v < minIdx)) minIdx = v;
 }
+renderStart = (minIdx >= 0) ? minIdx : targetStart;
+const dH = body.scrollHeight - prevH;
+if (dH) {
+if (nearBottom) scrollChatBottom();
+else body.scrollTop = Math.max(0, prevTop + dH);
+}
+suppressScrollUntil = Date.now() + 200;
+}
+function catchUpToLatest(maxRounds) {
+const rounds = (typeof maxRounds === 'number' && maxRounds > 0) ? maxRounds : 12;
+const stick = chatNearBottom();
+let r = 0;
+while (r++ < rounds && renderEnd < msgs.length) loadNewerIncremental(msgs.length);
+if (stick || chatNearBottom()) scrollChatBottom();
+return renderEnd >= msgs.length;
+}
+function clampWindowInplace() {
+try {
+if (!msgs.length) { window.__clampDbg = 'no-msgs'; return false; }
+if (windowStale) { window.__clampDbg = 'stale'; return false; }
+if (windowRenderedPrefix !== window.activePrefix()) { window.__clampDbg = 'prefix'; return false; }
+if (Array.isArray(windowRenderedLite) && windowRenderedLite.length) { window.__clampDbg = 'lite'; return false; }
+let n = renderStart;
+for (let k = 0; k < body.children.length; k++) {
+const el = body.children[k];
+if (!el.dataset || el.dataset.idx === undefined) continue;
+if (Number(el.dataset.idx) !== n) { window.__clampDbg = 'gap:' + n + 'vs' + el.dataset.idx; return false; }
+n++;
+}
+if (n !== renderEnd) { window.__clampDbg = 'end:' + n + 'vs' + renderEnd; return false; }
+if (!catchUpToLatest()) { window.__clampDbg = 'catchup:' + renderEnd + '/' + msgs.length; return false; }
+pruneWindowTop(RENDER_MAX);
+windowRenderedN = msgs.length;
+window.__clampDbg = 'ok';
+return true;
+} catch (e) { window.__clampDbg = 'exc:' + e.message; return false; }
+}
+setInterval(function () {
+try {
+if (!chatVisible() || !msgs.length) return;
+if (renderEnd >= msgs.length) return;
+if (!chatNearBottom()) return;
+catchUpToLatest();
+} catch (e) {}
+}, 1200);
 let bodyScrollTimer = null;
 body.addEventListener('scroll', function () {
 if (Date.now() < suppressScrollUntil) return;
@@ -29192,7 +29270,7 @@ if (!chatVisible()) return;
 if (body.scrollTop < TOP_THRESHOLD) {
 loadOlderIncremental();
 } else if (renderEnd < msgs.length && body.scrollHeight - body.scrollTop - body.clientHeight < TOP_THRESHOLD) {
-loadNewerIncremental();
+catchUpToLatest();
 }
 else if (!chatPinnedBottom && body.scrollHeight - body.scrollTop - body.clientHeight < 120) {
 scrollChatBottom();
@@ -30050,7 +30128,7 @@ try { store.set('desk-msg-en', deskMsgToggle.checked ? '1' : '0'); } catch (e) {
 function addRec(rec) {
 if (!rec.ts) rec.ts = Date.now();
 const len = msgs.length;
-for (let i = len - 1; i >= Math.max(0, len - 5); i--) {
+for (let i = len - 1; i >= Math.max(0, len - 30); i--) {
 const p = msgs[i];
 if (!p || p.special || rec.special) continue;
 if ((p.side || '') !== (rec.side || '')) continue;
@@ -30071,7 +30149,7 @@ incChatUnread();
 }
 if (renderStart > 0 && msgs.length - renderStart > WINDOW_MAX &&
 (rec.side === 'out' || chatNearBottom())) {
-renderWindow(false, true);
+if (!clampWindowInplace()) renderWindow(false, true);
 scrollChatBottom();
 return body.lastElementChild;
 }
@@ -60060,7 +60138,7 @@ return [];
 function stripLetterImg(l) {
 if (!l || typeof l !== 'object') return l;
 const c = Object.assign({}, l);
-const strip = (s) => { if (typeof s !== 'string') return s; let t = s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[图片]'); if (t.length > 8192) t = t.slice(0, 8192) + '…'; return t; };
+const strip = (s) => { if (typeof s !== 'string') return s; let t = s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]'); if (t.length > 8192) t = t.slice(0, 8192) + '…'; return t; };
 c.content = strip(c.content);
 if (c.myReply) { c.myReply = Object.assign({}, c.myReply); c.myReply.content = strip(c.myReply.content); }
 if (c.partnerReply) { c.partnerReply = Object.assign({}, c.partnerReply); c.partnerReply.content = strip(c.partnerReply.content); }
@@ -60168,14 +60246,33 @@ try { updateBadge(); } catch (e) {}
 }
 window.openMailPage = openMailPage;
 function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function mailMediaTag(tok) {
+const real = (window.mochiMediaExpand && window.mochiMediaExpand(tok)) || '';
+if (real) {
+const a = String(real).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+return '<img class="mail-body-img" src="' + a + '" alt="表情"> ';
+}
+const tid = 'mls' + Math.random().toString(36).slice(2, 10);
+try {
+if (window.mochiMediaExpandAsync) {
+window.mochiMediaExpandAsync(tok, function (v) {
+if (!v) return;
+const el = document.querySelector('img[data-mtok="' + tid + '"]');
+if (el) { el.src = v; el.style.opacity = ''; }
+});
+}
+} catch (e) {}
+return '<img class="mail-body-img" data-mtok="' + tid + '" src="" alt="表情" style="opacity:.3"> ';
+}
 function renderBody(content, fit) {
 const s = String(content || '');
 const seg = (t) => {
 t = String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 return (fit && window.taFit) ? window.taFit(t) : t;
 };
-const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
+const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+|@@m:[0-9a-f]{32})/g;
 return s.replace(RE, function (all, pre, src) {
+if (src.indexOf('@@m:') === 0) return mailMediaTag(src);
 if (src.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') {
 return seg(all); // 普通网址（无附图前缀）按文本保留
 }
@@ -60188,6 +60285,7 @@ const str = String(s || '');
 const cleaned = str
 .replace(/(?:sticker|image):data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '')
 .replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '')
+.replace(/@@m:[0-9a-f]{32}/g, '') // FIX #302x 媒体池令牌不铺进列表摘要
 .replace(/\s+/g, ' ').trim();
 let out = escHtml((cleaned || '（图片）').slice(0, 30));
 if (fit && window.taFit) out = window.taFit(out);
@@ -61372,7 +61470,7 @@ if (Array.isArray(c.imgs)) c.imgs = [];
 c.authorAv = '';
 c.taAv = '';
 if (typeof c.content === 'string') {
-c.content = c.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+c.content = c.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
 if (c.content.length > 8192) c.content = c.content.slice(0, 8192) + '…';
 }
 if (Array.isArray(c.comments)) {
@@ -61380,7 +61478,7 @@ c.comments = c.comments.map(co => {
 if (!co || typeof co !== 'object') return co;
 const cc = Object.assign({}, co);
 if (typeof cc.content === 'string') {
-cc.content = cc.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+cc.content = cc.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
 if (cc.content.length > 8192) cc.content = cc.content.slice(0, 8192) + '…';
 }
 if (Array.isArray(cc.replies)) {
@@ -61388,7 +61486,7 @@ cc.replies = cc.replies.map(r => {
 if (!r || typeof r !== 'object') return r;
 const rr = Object.assign({}, r);
 if (typeof rr.content === 'string') {
-rr.content = rr.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+rr.content = rr.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
 if (rr.content.length > 8192) rr.content = rr.content.slice(0, 8192) + '…';
 }
 return rr;
@@ -61678,14 +61776,36 @@ return { text: text, kaomoji: kaomoji, emoji: emoji, sticker: mediaSticker, imag
 }
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function attrEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function feedImgTag(u, cls, alt) {
+const s = String(u || '');
+const c = cls || '';
+const a = alt || '图片';
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) {
+const real = (window.mochiMediaExpand && window.mochiMediaExpand(s)) || '';
+if (real) return '<img class="' + c + '" src="' + attrEsc(real) + '" alt="' + a + '" loading="lazy">';
+const tid = 'fm' + Math.random().toString(36).slice(2, 10);
+try {
+if (window.mochiMediaExpandAsync) {
+window.mochiMediaExpandAsync(s, function (v) {
+if (!v) return;
+const el = document.querySelector('img[data-mtok="' + tid + '"]');
+if (el) { el.src = v; el.style.opacity = ''; }
+});
+}
+} catch (e) {}
+return '<img class="' + c + '" data-mtok="' + tid + '" src="" alt="' + a + '" loading="lazy" style="opacity:.3">';
+}
+return '<img class="' + c + '" src="' + attrEsc(s) + '" alt="' + a + '" loading="lazy">';
+}
 function inlineBody(s, cid) {
 const str = String(s || '');
 const fitSeg = (seg) => {
 seg = String(seg).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 return (cid && window.taFit) ? window.taFit(seg, cid) : seg;
 };
-const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
+const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+|@@m:[0-9a-f]{32})/g;
 return str.replace(RE, function (all, pre, src) {
+if (src.indexOf('@@m:') === 0) return feedImgTag(src, 'feed-inline-img', '表情');
 if (src.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') {
 return fitSeg(all); // 普通网址（无附图前缀）按文本保留
 }
@@ -61765,10 +61885,10 @@ return { content: textParts.join(' '), imgs: imgs };
 function contentHtmlFor(p) {
 let content = String(p.content || '');
 const imgs = (p.imgs && p.imgs.length) ? p.imgs.slice() : (p.img ? [p.img] : []);
-content = content.replace(/((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g, (m, pre, u) => { if (u.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') return m; imgs.push(u); return ' '; });
+content = content.replace(/((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+|@@m:[0-9a-f]{32})/g, (m, pre, u) => { if (u.indexOf('@@m:') === 0) { imgs.push(u); return ' '; } if (u.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') return m; imgs.push(u); return ' '; });
 let html = inlineBody(content, (p.role || p.by) === 'me' ? '' : p.owner);
 if (imgs.length) {
-html += '<div class="feed-imgs">' + imgs.map(u => '<img src="' + attrEsc(u) + '" alt="图片" loading="lazy">').join('') + feedStickersHtml(p) + '</div>';
+html += '<div class="feed-imgs">' + imgs.map(u => feedImgTag(u, '', '图片')).join('') + feedStickersHtml(p) + '</div>';
 }
 return html;
 }
@@ -62606,7 +62726,7 @@ else addNotice('comment', p2.id, taName2 + ' 回复了你的评论：' + noticeT
 if (comSend) comSend.addEventListener('click', submitComment);
 if (comInput) comInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); submitComment(); } });
 function noticeTextClean(s) {
-return String(s || '').replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[表情包]');
+return String(s || '').replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[表情包]').replace(/@@m:[0-9a-f]{32}/g, '[表情包]');
 }
 function notices() { try { return JSON.parse(store.get('feed-notices') || '[]'); } catch (e) { return []; } }
 function saveNotices(list) { store.set('feed-notices', JSON.stringify(list)); }
@@ -91694,4 +91814,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtz4r6au -->
+<!-- __MOCHI_EOF__ mtzyjdh7 -->
