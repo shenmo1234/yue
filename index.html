@@ -9704,9 +9704,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789397132620">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789398251610">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-14 22:45<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-14 23:04<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -62813,9 +62813,10 @@ if (idx >= 0) { list[idx].read = true; save(list); }
 } catch (e) {}
 }
 updateBadge();
-const name = partnerName();
-const myName = store.get('lbl-user') || '我';
-let html = '';
+let name = 'TA', myName = '我', html = '', footer = '';
+try {
+name = partnerName();
+myName = store.get('lbl-user') || '我';
 if (l.type === 'received' || l.fromMe) {
 html += letterPaper(l.tt || '来信', l.content, fmtDT(l.tm), l.fromMe ? myName : name, !l.fromMe);
 } else if (l.type === 'sent') {
@@ -62829,9 +62830,8 @@ if (canFav) {
 try {
 const favArr = JSON.parse(store.get('fav-msgs') || '[]');
 favAlready = favArr.some(x => (x.kind || 'msg') === 'mail' && x.mailType === 'received' && (x.text || '') === (l.content || '') && x.ts === l.tm);
-} catch (e) {}
+} catch (e2) {}
 }
-let footer = '';
 if (canFav && !l.myReply) {
 footer = '<div class="mail-actions"><button class="cc-tool" id="mail-fav-btn">' + (favAlready ? '已收藏' : '收藏来信') + '</button><button class="cc-tool" id="mail-edit-btn">编辑</button><button class="cc-tool" id="mail-reply-btn">提笔回信</button><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
 } else if (canFav) {
@@ -62841,6 +62841,13 @@ footer = '<div class="mail-actions"><button class="cc-tool" id="mail-edit-btn">�
 } else {
 footer = '<div class="mail-actions"><button class="cc-tool cc-tool-danger" id="mail-del-btn">删除</button><button class="cc-tool" id="mail-close2">关闭</button></div>';
 }
+} catch (e) {}
+if (!html) {
+let plain = '';
+try { plain = escHtml(mailCleanDisplay(String((l && l.content) || ''))); } catch (e3) { plain = ''; }
+html = '<div class="mail-paper"><div class="mail-paper-title">' + escHtml((l && l.tt) || '信件') + '</div><div class="mail-paper-body">' + plain + '</div></div>';
+}
+if (!footer) footer = '<div class="mail-actions"><button class="cc-tool" id="mail-close2">关闭</button></div>';
 let panelOpened = false;
 try {
 if (window.openTCPanel) {
@@ -62860,9 +62867,10 @@ if (l.myReply && l.type !== 'sent') txt += '\n\n—— 我的回信 ——\n' + 
 if (l.partnerReply) txt += '\n\n—— 对方的回信 ——\n' + stripImg(l.partnerReply.content);
 window.openModal(l.fromMe ? '寄出的信' : '信件', '', () => {}, { noInput: true, staticText: txt });
 }
+try {
 bindLetterImgClicks(document.getElementById('tc-body'));
 const close2 = document.getElementById('mail-close2');
-if (close2) close2.addEventListener('click', () => { document.getElementById('tc-mask').hidden = true; viewLetter = null; });
+if (close2) close2.addEventListener('click', () => { const mk = document.getElementById('tc-mask'); if (mk) mk.hidden = true; viewLetter = null; });
 const replyBtn = document.getElementById('mail-reply-btn');
 if (replyBtn) replyBtn.addEventListener('click', () => openReply(l));
 const editBtn = document.getElementById('mail-edit-btn');
@@ -62877,6 +62885,7 @@ toast(ok ? '已收藏到我的收藏' : '这封来信已收藏过');
 if (ok) favBtn.textContent = '已收藏';
 }
 });
+} catch (e) {}
 }
 function showPage(id) {
 document.querySelectorAll('.page').forEach(p => p.hidden = true);
@@ -94816,4 +94825,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mu1cuo24 -->
+<!-- __MOCHI_EOF__ mu1dinh6 -->
