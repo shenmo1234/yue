@@ -9704,9 +9704,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789391325852">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789397132620">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-14 21:08<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-14 22:45<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -62751,22 +62751,7 @@ try { updateBadge(); } catch (e) {}
 window.openMailPage = openMailPage;
 function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function mailMediaTag(tok) {
-const real = (window.mochiMediaExpand && window.mochiMediaExpand(tok)) || '';
-if (real) {
-const a = String(real).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-return '<img class="mail-body-img" src="' + a + '" alt="表情"> ';
-}
-const tid = 'mls' + Math.random().toString(36).slice(2, 10);
-try {
-if (window.mochiMediaExpandAsync) {
-window.mochiMediaExpandAsync(tok, function (v) {
-if (!v) return;
-const el = document.querySelector('img[data-mtok="' + tid + '"]');
-if (el) { el.src = v; el.style.opacity = ''; }
-});
-}
-} catch (e) {}
-return '<img class="mail-body-img" data-mtok="' + tid + '" src="" alt="表情" style="opacity:.3"> ';
+return '<img class="mail-body-img" src="' + String(tok).replace(/"/g, '&quot;') + '" alt="表情"> ';
 }
 function renderBody(content, fit) {
 const s = mailCleanDisplay(String(content || ''));
@@ -64314,25 +64299,7 @@ return { text: text, kaomoji: kaomoji, emoji: emoji, sticker: mediaSticker, imag
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function attrEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function feedImgTag(u, cls, alt) {
-const s = String(u || '');
-const c = cls || '';
-const a = alt || '图片';
-if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) {
-const real = (window.mochiMediaExpand && window.mochiMediaExpand(s)) || '';
-if (real) return '<img class="' + c + '" src="' + attrEsc(real) + '" alt="' + a + '" loading="lazy">';
-const tid = 'fm' + Math.random().toString(36).slice(2, 10);
-try {
-if (window.mochiMediaExpandAsync) {
-window.mochiMediaExpandAsync(s, function (v) {
-if (!v) return;
-const el = document.querySelector('img[data-mtok="' + tid + '"]');
-if (el) { el.src = v; el.style.opacity = ''; }
-});
-}
-} catch (e) {}
-return '<img class="' + c + '" data-mtok="' + tid + '" src="" alt="' + a + '" loading="lazy" style="opacity:.3">';
-}
-return '<img class="' + c + '" src="' + attrEsc(s) + '" alt="' + a + '" loading="lazy">';
+return '<img class="' + (cls || '') + '" src="' + attrEsc(u) + '" alt="' + (alt || '图片') + '" loading="lazy">';
 }
 function inlineBody(s, cid) {
 const str = String(s || '');
@@ -94849,4 +94816,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mu19e7j0 -->
+<!-- __MOCHI_EOF__ mu1cuo24 -->
