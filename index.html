@@ -9770,9 +9770,9 @@ html.dark #page-video .vd-now { color: #777; }
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789435754610">
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789442580256">
         <span class="sv-app">Mochi 字卡传讯 <b>v3.26.0</b></span>
-        <span class="sv-deploy">部署于 2026-09-15 09:29<span id="splash-ver-live"></span></span>
+        <span class="sv-deploy">部署于 2026-09-15 11:23<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -29505,9 +29505,17 @@ for (let i = idx; i < end; i++) { if (normCell(msgs[i])) { changed = true; chang
 const _rm = normCollapseRange(idx, end + 1, msgs);
 if (_rm) { changed = true; removedAll += _rm; }
 if (end < N) { idx = end; setTimeout(tick, 0); }
-else finish();
+else { const _rb = normDropBlankRange(msgs); if (_rb) { changed = true; removedAll += _rb; } finish(); }
 };
 setTimeout(tick, 0);
+}
+function normDropBlankRange(arr) {
+if (!Array.isArray(arr)) return 0;
+let removed = 0;
+for (let i = arr.length - 1; i >= 0; i--) {
+if (!msgHasVisibleContent(arr[i])) { arr.splice(i, 1); removed++; }
+}
+return removed;
 }
 function migrateLegacyMediaMsgs() {
 let migrated = false;
@@ -31535,18 +31543,20 @@ m.dataset.pendingRead = '1';
 b.dataset.orig = rec.orig || rec.text;
 b.innerHTML = '<span style="opacity:.6;font-size:12px;cursor:pointer">' + (rec.side === 'out' ? '我' : '对方') + '撤回了一条消息</span>';
 bindToggle(b, rec.side);
-} else if (rec.type === 'sticker' || rec.type === 'image') {
+} else if (rec.type === 'sticker' || rec.type === 'image' || rec.img) {
+const __mediaSrc = rec.img || rec.text;
+const __isBigImg = rec.type === 'image' || (!rec.type && !!rec.img);
 b.style.padding = '6px';
 b.style.background = '';
 b.style.border = '';
 b.style.boxShadow = '';
-b.innerHTML = (rec.quote ? quoteHtml(rec.quote, rec.qside) : '') + (rec.type === 'image'
-? '<img class="msg-img msg-img-big" src="' + attrEsc(rec.text) + '" alt="图片" loading="lazy" decoding="async">'
-: '<img class="msg-img msg-img-sm" src="' + attrEsc(rec.text) + '" alt="表情" loading="lazy" decoding="async">');
-if (rec.type === 'image') {
+b.innerHTML = (rec.quote ? quoteHtml(rec.quote, rec.qside) : '') + (__isBigImg
+? '<img class="msg-img msg-img-big" src="' + attrEsc(__mediaSrc) + '" alt="图片" loading="lazy" decoding="async">'
+: '<img class="msg-img msg-img-sm" src="' + attrEsc(__mediaSrc) + '" alt="表情" loading="lazy" decoding="async">');
+if (__isBigImg) {
 b.querySelector('.msg-img-big').addEventListener('click', (e) => {
 e.stopPropagation();
-if (window.viewChatImage) window.viewChatImage(rec.text);
+if (window.viewChatImage) window.viewChatImage(__mediaSrc);
 });
 }
 bindMediaFailPlaceholder(b);
@@ -31609,7 +31619,7 @@ if (d) d.style.display = d.style.display === 'block' ? 'none' : 'block';
 }
 } else {
 const __rawText = typeof rec.text === 'string' ? rec.text : '';
-const __blankMsg = !__rawText.trim();
+const __blankMsg = !String(__rawText).replace(/[\s\u200b-\u200f\u2028\u2029\ufeff]/g, '');
 const __bodyHtml = __blankMsg
 ? '<span style="opacity:.5;font-size:12px">（空白消息）</span>'
 : '<span style="opacity:.85;word-break:break-word">' + window.mochiInlineTextHtml(T(__rawText)) + '</span>';
@@ -32014,8 +32024,17 @@ deskMsgToggle.addEventListener('change', () => {
 try { store.set('desk-msg-en', deskMsgToggle.checked ? '1' : '0'); } catch (e) {}
 });
 }
+function msgHasVisibleContent(rec) {
+if (!rec) return false;
+if (rec.special || rec.img || rec.voice || rec.type === 'sticker' || rec.type === 'image' || rec.type === 'voice') return true;
+if (Array.isArray(rec.parts) && rec.parts.length) return true;
+if (Array.isArray(rec.mood) && rec.mood.length) return true;
+if (typeof rec.text === 'number') return true;
+return String(rec.text == null ? '' : rec.text).replace(/[\s\u200b-\u200f\u2028\u2029\ufeff]/g, '') !== '';
+}
 function addRec(rec) {
 if (!rec.ts) rec.ts = Date.now();
+if (!msgHasVisibleContent(rec)) return null; // #508：空白记录在入口丢弃（不落 LS/IDB、不上屏）
 const len = msgs.length;
 for (let i = len - 1; i >= Math.max(0, len - 30); i--) {
 const p = msgs[i];
@@ -33238,6 +33257,10 @@ morePanel.hidden = true;
 }
 const pokeCard = document.getElementById('poke-card');
 const pokeList = document.getElementById('poke-list');
+let pokeOpenTs = 0;
+if (pokeCard) pokeCard.addEventListener('click', (e) => {
+if (Date.now() - pokeOpenTs < 450) { e.stopPropagation(); e.preventDefault(); }
+}, true);
 const pokeClose = document.getElementById('poke-card-close');
 const pokeName = document.getElementById('poke-partner-name');
 const POKE_PRESETS = {
@@ -35556,6 +35579,7 @@ return false;
 }
 function openPokeCard() {
 if (!pokeCard) return;
+pokeOpenTs = Date.now(); // #508：标记开面板时刻，供面板内 click 早到吞并（防抬手合成 click 误发字卡）
 pokeAdoptAllRerender(); // 慢 IDB（iOS 挂后台杀连接）下 restore-done 兜底可能落空，开面板再补一次
 const ep = document.getElementById('emoji-panel');
 if (ep) ep.hidden = true;
@@ -35895,7 +35919,9 @@ const delBtn = msgActions.querySelector('.ma-del-ta');
 if (delBtn) {
 let delEn = false;
 try { delEn = store.get('cs-del-ta-msg') === '1'; } catch (e) {}
-delBtn.hidden = !(delEn && activeSide === 'in');
+const _bkRec = activeMsgSnap ? activeMsgSnap.rec : null;
+const _isBlankRec = !!_bkRec && !msgHasVisibleContent(_bkRec);
+delBtn.hidden = !((delEn || _isBlankRec) && (activeSide === 'in' || _isBlankRec));
 }
 msgActions.hidden = false;
 const bRect = b.getBoundingClientRect();
@@ -36089,7 +36115,7 @@ if (b) b.innerHTML = '<span style="opacity:.85">' + escTxt(val) + '</span>';
 }
 closeMsgActions();
 } else if (act === 'del') {
-if (activeMsgEl && idx >= 0 && msgs[idx] && msgs[idx].side === 'in') {
+if (activeMsgEl && idx >= 0 && msgs[idx] && (msgs[idx].side === 'in' || !msgHasVisibleContent(msgs[idx]))) {
 chatTailDrop(msgs[idx]); // FIX 2026-09-05 #185 删除消息同步从尾巴日志摘除，防刷新后 chatTailMerge 回放复活（与撤回同口径）
 msgs.splice(idx, 1);
 sessionChangedIdx.clear();
@@ -96342,4 +96368,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mu1zugz6 -->
+<!-- __MOCHI_EOF__ mu23wrog -->
